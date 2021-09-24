@@ -1,0 +1,25 @@
+ <a href="/settings/add">Добавить устройство</a>
+    <h1>Список устройств</h1>
+     <table id="units">
+         <tr><th>Название</th><th>Модель</th><th>IP адрес</th><th>Вкл/выкл монироринг</th></tr>
+         {{#each units}}
+            <tr data-id="eeea5c">
+               <td><input type="checkbox" {{this.enabled}}></td>
+               <td>{{this.name}}</td>
+               <td>{{this.unitModel}}</td>
+               <td>{{this.ip}}</td>
+               <td><button name="editbtn" data-state="edit">Edit</button></td>
+            </tr>
+         {{/each}}
+     </table>
+
+   <script>
+      let table = document.getElementById('units');
+      table.addEventListener('click', (event)=>{
+         let target = event.target;
+         if(target.getAttribute('name') != 'editbtn') return;
+      //   
+         let row = target.closest('tr');
+      //   alert(row);
+      })
+   </script>

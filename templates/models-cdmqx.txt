@@ -1,0 +1,18 @@
+{
+    "_id": {
+        "$oid": "614977863b23f0aa92170ceb"
+    },
+    "name": "cdm QX",
+    "items": [
+      {"name":"Eb/N0", "code":"code", "dim":"дЅ"},
+      {"name":"Buffer", "code":"buffer", "dim":"%"},      
+      {"name":"BER", "code":"ber", "dim":""},
+      {"name":"RSL", "code":"rsl", "dim":"дЅм¬т"},
+      {"name":"Freq Offset", "code":"foffset", "dim":"к√ц"},
+      {"name":"Delay", "code":"delay", "dim":"мс"},
+      {"name":"Ratio", "code":"ratio", "dim":""},
+      {"name":"Remote Eb/N0", "code":"rebn", "dim":"дЅ"},
+      {"name":"Alarms", "code":"alarms", "dim":""}
+      ]
+    
+}

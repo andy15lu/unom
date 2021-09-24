@@ -1,0 +1,16 @@
+{
+    "name": "umonapp",
+    "version": "1.0.0",
+    "description": "device monitoring system",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^4.17.0",
+        "express-handlebars": "^5.3.3",
+        "hbs": "^4.1.2",
+        "mongodb": "^4.1.0",
+        "mongoose": "^6.0.6"
+    },
+    "devDependencies": {
+        "handlebars": "^4.7.7"
+    }
+}

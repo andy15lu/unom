@@ -1,0 +1,61 @@
+{
+    "_id": {
+        "$oid": "614997263b23f0aa92170cf7"
+    },
+    "name": "cdm QX",
+    "checktime": "",
+    "enable": true,
+    "ip": "10.10.8.1",
+    "model": {
+        "$ref": "unitModels",
+        "$id": {
+            "$oid": "614ac16a3b23f0aa92170d0a"
+        }
+    },
+    "items": [{
+        "name": "Eb/N0",
+        "code": "code",
+        "dim": "дБ",
+        "value": ""
+    }, {
+        "name": "Buffer",
+        "code": "buffer",
+        "dim": "%",
+        "value": ""
+    }, {
+        "name": "BER",
+        "code": "ber",
+        "dim": "",
+        "value": ""
+    }, {
+        "name": "RSL",
+        "code": "rsl",
+        "dim": "дБмВт",
+        "value": ""
+    }, {
+        "name": "Freq Offset",
+        "code": "foffset",
+        "dim": "кГц",
+        "value": ""
+    }, {
+        "name": "Delay",
+        "code": "delay",
+        "dim": "мс",
+        "value": ""
+    }, {
+        "name": "Ratio",
+        "code": "ratio",
+        "dim": "",
+        "value": ""
+    }, {
+        "name": "Remote Eb/N0",
+        "code": "rebn",
+        "dim": "дБ",
+        "value": ""
+    }, {
+        "name": "Alarms",
+        "code": "alarms",
+        "dim": "",
+        "value": ""
+    }]
+}

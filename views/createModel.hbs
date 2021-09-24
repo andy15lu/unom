@@ -1,0 +1,37 @@
+ 
+    <form action="postUnitModel" method="POST" >
+        <input name='name'/>
+        <fieldset id='items' class='item_list'>
+            <button id="add_item">Добавить элемент</button>
+        </fieldset>
+        <button type="submit">Сохранить</button>
+    </form>
+
+
+    <script>
+        let itemCount = 0;
+        let addButton = document.getElementById('add_item');
+        addButton.addEventListener('click', event => {
+            event.preventDefault();
+            // alert();
+            let newItem = document.createElement('fieldset');
+            newItem.setAttribute('name', itemCount);
+            itemCount++;
+            let inputName = document.createElement('input');
+            inputName.setAttribute('name', 'name');
+           
+            inputCode = document.createElement('input');
+            inputCode.setAttribute('name', 'code');
+            
+            inputDim = document.createElement('input');
+            inputDim.setAttribute('name', 'dim');
+
+            newItem.append( inputName );
+            newItem.append( inputCode );
+            newItem.append( inputDim );
+        
+            let itemsList = document.querySelector('#items');
+            addButton.before(newItem);
+           //alert(itemsList);
+        })
+    </script>
