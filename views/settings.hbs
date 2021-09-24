@@ -14,12 +14,15 @@
      </table>
 
    <script>
+      let units = [];
       let table = document.getElementById('units');
       table.addEventListener('click', (event)=>{
          let target = event.target;
          if(target.getAttribute('name') != 'editbtn') return;
       //   
          let row = target.closest('tr');
-      //   alert(row);
+         let id = row.getAttribute('data-id');
+         row.style.background = "red";
+         alert(id);
       })
    </script>
