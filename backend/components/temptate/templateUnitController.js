@@ -1,4 +1,4 @@
-const UnitTemplate = require("../models/template.js");
+const UnitTemplate = require("./template.js");
 
 module.exports = {
     createTemplate: async (req, res)=>{

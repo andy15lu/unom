@@ -1,8 +1,8 @@
 const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Item = require("./item.js");
-const Template = require("./template.js");
+//const Item = require("./item.js.js");
+//const Template = require("./template.js.js");
 
 const schema = new Schema({
 
