@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 const objectId = mongoose.Types.ObjectId;
-const Template = require("../temptate/template.js");
-const Unit = require(".unit.js");
+const Template = require("../template/template.js");
+const Unit = require("./unit.js");
 const Item = require("../item/item.js");
 
 
 
 module.exports = {
-    getUnitsInfo: async (req, res) => {//информация для отображения данных пользователю
+    getUnitsInfo: async (req) => {//информация для отображения данных пользователю (web)
         try{
             const units = await Unit.find({}).populate("template items");
             
@@ -27,9 +27,9 @@ module.exports = {
                 });
                 return {name: unit.name, items: itemsInfo};
             });
-            res.send(JSON.stringify( {msg: "", data: unitsInfo} ));
+            return JSON.stringify( {msg: "", data: unitsInfo} );
         }catch(err){
-            res.sendStatus(500);
+            throw("Ошибка getUnitsInfo");
         }
     },
     getUnitsMeta: async (req, res) => {// информация для скрипта опроса
@@ -50,9 +50,9 @@ module.exports = {
                 });
                 return {name: unit.name, items: itemsMeta};
             });
-            res.send(JSON.stringify( {msg:"", data: unitsMeta} ));
+            return JSON.stringify( {msg:"", data: unitsMeta} );
         }catch(err){
-            res.sendStatus(500);
+            throw("Ошибка getUnitsMeta");
         }
     },
     getUnitsConfig: async (req, res) => {// информация для интерфейса настройки
@@ -62,9 +62,9 @@ module.exports = {
             let unitsConfig = units.map( unit => {
                 return {name: unit.name, templateName: unit.template.name };
             });
-            res.send(JSON.stringify( {msg:"", data: unitsConfig} ));
+            return JSON.stringify( {msg:"", data: unitsConfig} );
         }catch(err){
-            res.sendStatus(500);
+            throw("Ошибка getUnitsConfig");//res.sendStatus(500);
         }
     },
     createUnit: async (req, res) => {
@@ -99,10 +99,10 @@ module.exports = {
                     } );
                 }
             const createdUnit = await Unit.create(newUnit);
-            res.send(JSON.stringify( {msg:"", data: createdUnit }));
+            return JSON.stringify( {msg:"", data: createdUnit });
         }catch(err){
-            console.log( err );
-            res.sendStatus(500);
+            //console.log( err );
+            throw("Ошибка createUnit");
         }
     },
 

@@ -1,8 +1,7 @@
 const UnitTemplate = require("./template.js");
 
 module.exports = {
-    createTemplate: async (req, res)=>{
-
+    createTemplate: async (req)=>{
    /*     let example = {
             name: "Comtech cdm qx",
             code: "1001",
@@ -13,26 +12,28 @@ module.exports = {
         
         };*/
     const newTemplate = await UnitTemplate.create(req.body);
-        res.send( JSON.stringify({msg:"", data: newTemplate}) );
+    if(!newTemplate)
+        throw("Ошибка создания шаблона");
+    return JSON.stringify({msg:"Шаблон создан", data: newTemplate});
     },
-    getTemplate: async (req, res) =>{ //получить список всех шаблонов устройств
+    getTemplate: async (req) =>{ //получить список всех шаблонов устройств
         try{
             let template = await UnitTemplate.findById( req.params.id );
             if(template === null)
-                res.sendStatus(404);
-            res.send("" + JSON.stringify(template));
+                throw("Ошибка получения данный о шаблоне");
+            return JSON.stringify(template);
         }catch(err){
             console.log("getTemplate error: "+ err);
-            res.sendStatus(500);
+            //res.sendStatus(500);
+            throw("Ошибка получения данный о шаблоне");
         }
-        
     },
-    getTemplates: async (req, res) =>{
+    getTemplates: async (req) =>{
         let templates = await UnitTemplate.find({});
      //   console.log(templates);
      
         //if(templates === null)
         //    templates = "none";
-        res.send("" + JSON.stringify(templates));
+        return JSON.stringify(templates);
     },
 };

@@ -3,7 +3,7 @@ import Telnet from "telnet-client";
 import fetch from 'node-fetch';
 const serverURL = "http://127.0.0.1:3000";
 const getAddress = serverURL + "/units/metadata";
-const setAddress = serverURL + "/units/update";
+const setAddress = serverURL + "/items/update";
 let run = ()=>{
     fetch(getAddress)
     .then( response => response.json())
@@ -17,7 +17,7 @@ let run = ()=>{
                 // -- опрос по телнет и получение значения
     
                 let value = {};
-                value[item._id] = "test2";
+                value[item._id] = "test3";
                 values.push(value);
             }
             fetch( setAddress, {

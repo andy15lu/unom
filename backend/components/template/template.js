@@ -26,6 +26,7 @@ const schema = new Schema({
         targetItem: {type:String}, //код элемента данных на статус которого влияет триггер
 
     }],
+    createData: String,
     
 });
 module.exports = mongoose.model("Template", schema);

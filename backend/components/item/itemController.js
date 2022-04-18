@@ -8,7 +8,7 @@ module.exports = {
             for(let i of req.body){
                 let item = Object.entries(i);
            //     console.log(item[0][0]+' '+item[0][1]);
-                const updatedItem = await Item.findByIdAndUpdate( item[0][0], {value: item[0][1]}, {new: true} );
+                const updatedItem = await Item.findByIdAndUpdate( item[0][0], {value: item[0][1], updateTime: new Date()}, {new: true} );
                 console.log(updatedItem);
                 console.log("nos="+updatedItem.nos);
                 if(updatedItem["history"]){
@@ -23,10 +23,10 @@ module.exports = {
                     console.log(updatedItem.history);
             }
             //Item.update
-            res.send(JSON.stringify( {msg: "", data: []} ));
+            return JSON.stringify( {msg: "", data: []} );
         }catch( err ){
-            console.log("Ошибка updateItem", err);
-            res.sendStatus(500);
+            //console.log("Ошибка updateItem", err);
+            throw("Ошибка updateItem");//res.sendStatus(500);
         }
     },
 };
