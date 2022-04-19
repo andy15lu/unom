@@ -3,8 +3,40 @@ const objectId = mongoose.Types.ObjectId;
 const Template = require("../template/template.js");
 const Unit = require("./unit.js");
 const Item = require("../item/item.js");
+const Event = require("../event/event.js");
 
+let getUnitsPopulated = async ( filterObj ) =>{
+    const units = await Unit.find(filterObj).populate("template items");
 
+    let unitsData = units.map( unit =>{
+        let tmpItems = {};// отсюда берем информацию об item: name, type, dim
+        for( let i of unit.template.items){
+            tmpItems[ i._id ] = i;
+        }
+        let templateName = unit.template.name;
+        let itemsData = unit.items.map( item => {
+            let newItem = {
+                _id: item._id,
+                name: tmpItems[item.itemTemplate].name,
+                dim: tmpItems[item.itemTemplate].dim,
+                type: tmpItems[item.itemTemplate].type,
+                code: tmpItems[item.itemTemplate].code,
+                value: item.value,
+                updateTime: item.updateTime,
+                status: item.status,
+                history: item.history,
+                meta: item.meta,
+                
+
+            };
+            return newItem;
+        });
+       
+        return {_id: unit._id, template: unit.template.name, name: unit.name, items: itemsData, triggers: unit.triggers, constants: unit.constants};
+    });
+    return unitsData;
+   // console.log(units);
+}
 
 module.exports = {
     getUnitsInfo: async (req) => {//информация для отображения данных пользователю (web)
@@ -105,5 +137,55 @@ module.exports = {
             throw("Ошибка createUnit");
         }
     },
+    calcTriggers: async (req) =>{
+        try{
+            let units = await getUnitsPopulated({_id: req.params.id });
+
+            let unit = units[0];
+            if(!unit)
+                throw(`Пользователь не найден ${req.params.id}`);
+            let vars = {items:{}};
+            let itemIds = {};
+            for( let item of unit.items){
+                itemIds[ item.code ] = item._id;
+                vars.items[ item.code ] = item.value;
+            }
+            let i = 0;
+            for(trigger of unit.triggers){
+                let triggerFunc = new Function('items', "return " + trigger.condition);
+                let newStatus = 0;
+                let newState = 0;
+                if( triggerFunc(vars.items) ){
+                    newStatus = trigger.status;
+                    newState = 1;
+                }
+                await Item.findByIdAndUpdate(itemIds[ trigger.targetItem ], {status: newStatus});
+                if( trigger.state !== newState){
+                    let updateObj = {};
+                    updateObj["triggers."+i+".state"] = newState;
+                    await Unit.findByIdAndUpdate(unit._id, updateObj );
+                    await Event.create({trigger: trigger._id, datetime: new Date(), value: newState});
+                }
+                //console.log(state, triggerFunc);
+                i++;
+            }
+            console.log( vars );
+            return "done";
+        }catch(err){
+            console.log("", err);
+            throw("Ошибка countTriggers");
+        }
+    },
 
 }
+/*
+countTriggers: async (req) =>{
+    try{
+
+    }catch(err){
+        //console.log("", err);
+        throw("");
+    }
+
+},
+*/

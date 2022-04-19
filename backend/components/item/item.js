@@ -10,6 +10,7 @@ const schema = new Schema({
         },
     itemTemplate:{
          type: ObjectId,
+         ref: "Template.$.items",
          required: true,
         },
     status:{
@@ -20,6 +21,16 @@ const schema = new Schema({
     history: {type: Boolean, default:true},
     value: String,
     meta: [],
+    
 });
-
+/*schema.virtual('code')
+.get( function(){
+    return "code";
+})
+.set(function(v){});
+schema.static('getCode', function( id ) {
+    
+    let tmp = this.findById( id ); 
+    return tmp.name;
+    });*/
 module.exports = new mongoose.model("Item", schema);
