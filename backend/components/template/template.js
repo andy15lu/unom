@@ -26,6 +26,10 @@ const schema = new Schema({
         targetItem: {type:String}, //код элемента данных на статус которого влияет триггер
 
     }],
+    constants: [{
+        code: {type:String},
+        value:{type:String}
+    }],
     createData: String,
     
 });
@@ -39,7 +43,7 @@ let example = {
         {name: "BER", type: "float", dim: "", code:"ber", meta:[{param:"ebno", oid:"1.3.6.1.1102.1.5.2.1.1.0.2"}]},
     ],
     triggers: [
-        {"name": "Eb/N0 ниже нормы", "condition":"items.ebno < 8", "status": 3, "code": "ebno_alarm", "targetItem": "ebno"}
+        {"name": "Eb/N0 ниже нормы", "condition":"i.ebno < 8", "status": 3, "code": "ebno_alarm", "targetItem": "ebno"}
     ],
 
 };

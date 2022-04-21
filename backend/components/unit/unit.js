@@ -9,6 +9,9 @@ const schema = new Schema({
     name: {
         type: String,
     },
+    enabled:{type:Boolean,
+    default:true,
+    },
     template: {type: Schema.Types.ObjectId, ref: "Template"},
     items:[{
         type: Schema.Types.ObjectId, ref: "Item"}],

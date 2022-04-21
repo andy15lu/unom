@@ -13,27 +13,20 @@ module.exports = {
         };*/
     const newTemplate = await UnitTemplate.create(req.body);
     if(!newTemplate)
-        throw("Ошибка создания шаблона");
+        throw new Error("Ошибка создания шаблона");
     return JSON.stringify({msg:"Шаблон создан", data: newTemplate});
     },
     getTemplate: async (req) =>{ //получить список всех шаблонов устройств
         try{
             let template = await UnitTemplate.findById( req.params.id );
-            if(template === null)
-                throw("Ошибка получения данный о шаблоне");
             return JSON.stringify(template);
         }catch(err){
             console.log("getTemplate error: "+ err);
-            //res.sendStatus(500);
-            throw("Ошибка получения данный о шаблоне");
+            throw new Error("Ошибка получения данный о шаблоне");
         }
     },
     getTemplates: async (req) =>{
         let templates = await UnitTemplate.find({});
-     //   console.log(templates);
-     
-        //if(templates === null)
-        //    templates = "none";
         return JSON.stringify(templates);
     },
 };

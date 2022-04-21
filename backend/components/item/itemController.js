@@ -7,7 +7,7 @@ module.exports = {
     updateItems: async (req, res) =>{
         try{
             console.log(req.body);
-            
+
             for(let i of req.body){
                 let item = Object.entries(i);
            //     console.log(item[0][0]+' '+item[0][1]);
@@ -34,7 +34,7 @@ module.exports = {
             return JSON.stringify( {msg: "ok", data: []} );
         }catch( err ){
             //console.log("Ошибка updateItem", err);
-            throw("Ошибка updateItem");//res.sendStatus(500);
+            throw new Error("Ошибка updateItem");//res.sendStatus(500);
         }
     },
 };
