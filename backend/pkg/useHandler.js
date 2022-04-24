@@ -1,9 +1,16 @@
-let useHandler = ( req, res, handler ) =>{
+const errorLog = require("./log.js");
+let useHandler = async ( req, res, handler ) =>{
     try{
-        res.send( handler(req) );
+        let customRequest = {params: req.params, body: req.body};
+        let handlerResponse = await handler( customRequest );
+        res.send( handlerResponse );
     }
     catch( err ){
-        res.sendStatus(500);
+
+    //    res.s
+        errorLog(err);
+        res.status(500).send(err.message);
+        
     }
 };
 

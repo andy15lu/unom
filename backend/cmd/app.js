@@ -5,7 +5,7 @@ const parserJson = express.json();
 
 const templateRouter = require("../components/template/templateRouter.js");
 const unitRouter = require("../components/unit/unitRouter.js");
-const unitRouter = require("../components/item/itemRouter.js");
+const itemRouter = require("../components/item/itemRouter.js");
 
 
 
