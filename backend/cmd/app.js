@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const express = require("express");
 const app = express();
-const parserJson = express.json();
+let config = require('config'); 
+//const parserJson = express.json();
 
 const templateRouter = require("../components/template/templateRouter.js");
 const unitRouter = require("../components/unit/unitRouter.js");
@@ -13,10 +14,15 @@ app.use("/template",  templateRouter );
 app.use("/units",     unitRouter );
 app.use("/items",     itemRouter );
 
-mongoose.connect("mongodb://localhost:27017/dms", { useUnifiedTopology: true }, function(err){
-    if(err) return console.log(err);
-        app.listen(3000, function(){
+let dbName = "dms"
+if(config.util.getEnv('NODE_ENV') === "test")
+    dbName = 'dms-test';
+
+mongoose.connect("mongodb://localhost:27017/"+dbName, { useUnifiedTopology: true });
+
+let server = app.listen(3000, function(){
         console.log("Сервер ожидает подключения...");
-    });
 });
+
+module.exports.app = server;
 //app.listen(3000);

@@ -35,7 +35,9 @@ module.exports = {
         }
     },
     getTemplates: async (req) =>{
-        let templates = await UnitTemplate.find({});
-        return JSON.stringify(templates);
+        let templates = await UnitTemplate.find({name:'1'});
+        //return [];
+        //return JSON.stringify([]);
+        return JSON.stringify({msg:"template list", data: templates });
     },
 };
