@@ -1,3 +1,4 @@
+//const {AppError,ValidationError,PropertyRequireError} = require("../../pkg/error.js");
 const Item = require("./item.js");
 const History = require("../history/history.js");
 const Unit = require("../unit/unit.js");
@@ -34,7 +35,9 @@ module.exports = {
             return JSON.stringify( {msg: "ok", data: []} );
         }catch( err ){
             //console.log("Ошибка updateItem", err);
-            throw new Error("Ошибка updateItem");//res.sendStatus(500);
+            //throw new AppError("Ошибка updateItem");//res.sendStatus(500);
+            err["source"] = "updateItem";
+            throw err;
         }
     },
 };

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const {AppError,ValidationError,PropertyRequireError} = require("../../pkg/error.js");
 const objectId = mongoose.Types.ObjectId;
 const Template = require("../template/template.js");
 const Unit = require("./unit.js");
@@ -60,7 +61,8 @@ module.exports = {
             });
             return JSON.stringify( {msg: "", data: unitsInfo} );
         }catch(err){
-            throw("Ошибка getUnitsInfo");
+            err["source"] = "getUnitsInfo";
+            throw err;
         }
     },
     getUnitsMeta: async (req) => {// информация для скрипта опроса
@@ -83,39 +85,44 @@ module.exports = {
             });
             return JSON.stringify( {msg:"", data: unitsMeta} );
         }catch(err){
-            throw("Ошибка getUnitsMeta");
+            //throw("Ошибка getUnitsMeta");
+            err["source"] = "getUnitsMeta";
+            throw err;
         }
     },
     getUnitsConfig: async (req) => {// информация для интерфейса настройки
         try{
             const units = await Unit.find({}).populate("template");
-            
             let unitsConfig = units.map( unit => {
                 return {name: unit.name, templateName: unit.template.name, enadled: unit.enabled };
             });
             return JSON.stringify( {msg:"", data: unitsConfig} );
         }catch(err){
-            throw("Ошибка getUnitsConfig");//res.sendStatus(500);
+            //throw("Ошибка getUnitsConfig");//res.sendStatus(500);
+            err["source"] = "getUnitsConfig";
+            throw err;
         }
     },
     createUnit: async (req) => {
 
         try{
+            console.log(req);
             //валидация запроса
-            if(req.body.name !== undefined)
-                throw new SyntaxError("В запросе отсутствуют данные: name");
-            if(req.body.template !== undefined)
-                throw new SyntaxError("В запросе отсутствуют данные: template");
+      //      if(req.body.name === undefined)
+     //           throw new PropertyRequireError("name");
+            if(req.body.template === undefined)
+                throw new PropertyRequireError("template");
             const template = await Template.findById( req.body.template );
+            console.log(template);
             if(!template)
-            throw new Error("Ошибка createUnit. Шаблон не найден");
+                throw new AppError("Шаблон не найден");
             let newUnit = {
                 name : req.body.name,
                 template: template["_id"],
                 items: [],
                 triggers: [],
             };
-            for(item of template.items){
+            for(let item of template.items){
                 const newItem = await Item.create({
                     itemTemplate: item["_id"],
                     value: "",
@@ -137,8 +144,8 @@ module.exports = {
             const createdUnit = await Unit.create(newUnit);
             return JSON.stringify( {msg:"", data: createdUnit });
         }catch(err){
-            console.log( err );
-            throw new Error("Ошибка createUnit");
+            err["source"] = "createUnit";//this.constructor.name;
+            throw err;
         }
     },
     deleteUnit: async (req) => {
@@ -176,7 +183,7 @@ module.exports = {
 
             let unit = units[0];
             if(!unit)
-                throw new Error(`Пользователь не найден ${req.params.id}`);
+                throw new AppError(`Пользователь не найден ${req.params.id}`);
             let vars = {items:{}};
             let itemIds = {};
             for( let item of unit.items){
@@ -184,7 +191,7 @@ module.exports = {
                 vars.items[ item.code ] = item.value;
             }
             let i = 0;
-            for(trigger of unit.triggers){
+            for(let trigger of unit.triggers){
                 let triggerFunc = new Function('i', "return " + trigger.condition);
                 let newStatus = 0;
                 let newState = 0;
@@ -206,7 +213,8 @@ module.exports = {
             return JSON.stringify({msg:"ok",data:[]});
         }catch(err){
       //      console.log("", err);
-            throw new Error("Ошибка countTriggers");
+            err["source"] = "calcTriggers";
+            throw err;
         }
     },
     updateTrigger: async (req) =>{

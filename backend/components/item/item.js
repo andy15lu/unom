@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 const schema = new Schema({
     unitId:{
          type: ObjectId,
-         required: false,
+         required: true,
         },
     itemTemplate:{
          type: ObjectId,

@@ -8,11 +8,13 @@ const schema = new Schema({
 
     name: {
         type: String,
+        required:true,
     },
-    enabled:{type:Boolean,
-    default:true,
+    enabled: {
+        type:Boolean,
+        default:true, 
     },
-    template: {type: Schema.Types.ObjectId, ref: "Template"},
+    template: {type: Schema.Types.ObjectId, ref: "Template", required:true,},
     items:[{
         type: Schema.Types.ObjectId, ref: "Item"}],
     triggers: [{
