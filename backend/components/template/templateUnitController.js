@@ -23,21 +23,22 @@ module.exports = {
     const newTemplate = await UnitTemplate.create(req.body);
     if(!newTemplate)
         throw new AppError("Ошибка создания шаблона");
-    return JSON.stringify({msg:"Шаблон создан", data: newTemplate});
+    return {msg:"Шаблон создан", data: newTemplate};
     },
     getTemplate: async (req) =>{ //получить список всех шаблонов устройств
         try{
             let template = await UnitTemplate.findById( req.params.id );
-            return JSON.stringify(template);
+            return {msg:"", data:template};
         }catch(err){
             console.log("getTemplate error: "+ err);
             throw new Error("Ошибка получения данный о шаблоне");
         }
     },
     getTemplates: async (req) =>{
-        let templates = await UnitTemplate.find({name:'1'});
-        //return [];
-        //return JSON.stringify([]);
-        return JSON.stringify({msg:"template list", data: templates });
+        let templates = await UnitTemplate.find({});
+        //return {msg:"template list", data: [] };
+        //return JSON.stringify({msg:"template list", data: [] });
+        return {msg:"template list", data: templates };
+        //return JSON.stringify({msg:"template list", data: templates });
     },
 };

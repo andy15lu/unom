@@ -59,7 +59,7 @@ module.exports = {
                 });
                 return {name: unit.name, items: itemsInfo};
             });
-            return JSON.stringify( {msg: "", data: unitsInfo} );
+            return  {msg: "units info list", data: unitsInfo} ;
         }catch(err){
             err["source"] = "getUnitsInfo";
             throw err;
@@ -83,7 +83,7 @@ module.exports = {
                 });
                 return {name: unit.name, items: itemsMeta};
             });
-            return JSON.stringify( {msg:"", data: unitsMeta} );
+            return {msg:"units metadata list", data: unitsMeta} ;
         }catch(err){
             //throw("Ошибка getUnitsMeta");
             err["source"] = "getUnitsMeta";
@@ -96,7 +96,7 @@ module.exports = {
             let unitsConfig = units.map( unit => {
                 return {name: unit.name, templateName: unit.template.name, enadled: unit.enabled };
             });
-            return JSON.stringify( {msg:"", data: unitsConfig} );
+            return {msg:"units config list", data: unitsConfig};
         }catch(err){
             //throw("Ошибка getUnitsConfig");//res.sendStatus(500);
             err["source"] = "getUnitsConfig";
@@ -104,16 +104,15 @@ module.exports = {
         }
     },
     createUnit: async (req) => {
-
         try{
-            console.log(req);
+        //    console.log(req);
             //валидация запроса
       //      if(req.body.name === undefined)
      //           throw new PropertyRequireError("name");
             if(req.body.template === undefined)
                 throw new PropertyRequireError("template");
             const template = await Template.findById( req.body.template );
-            console.log(template);
+        //    console.log(template);
             if(!template)
                 throw new AppError("Шаблон не найден");
             let newUnit = {
@@ -142,7 +141,7 @@ module.exports = {
                     } );
                 }
             const createdUnit = await Unit.create(newUnit);
-            return JSON.stringify( {msg:"", data: createdUnit });
+            return {msg:"unit created", data: createdUnit };
         }catch(err){
             err["source"] = "createUnit";//this.constructor.name;
             throw err;
