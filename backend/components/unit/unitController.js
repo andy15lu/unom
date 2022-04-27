@@ -36,7 +36,7 @@ let getUnitsPopulated = async ( filterObj ) =>{
             return newItem;
         });
        
-        return {_id: unit._id, template: unit.template.name, name: unit.name, items: itemsData, triggers: unit.triggers, constants: unit.constants};
+        return {_id: unit._id, templateName: unit.template.name, name: unit.name, items: itemsData, triggers: unit.triggers, constants: unit.constants};
     });
     return unitsData;
    // console.log(units);
@@ -57,7 +57,7 @@ module.exports = {
                         value:  item.value,
                     };
                 });
-                return {name: unit.name, items: itemsInfo};
+                return {name: unit.name, templateName: unit.templateName, items: itemsInfo};
             });
             return  {msg: "units info list", data: unitsInfo} ;
         }catch(err){
@@ -94,7 +94,7 @@ module.exports = {
         try{
             const units = await Unit.find({}).populate("template");
             let unitsConfig = units.map( unit => {
-                return {name: unit.name, templateName: unit.template.name, enadled: unit.enabled };
+                return {name: unit.name, templateName: unit.template.name, enabled: unit.enabled };
             });
             return {msg:"units config list", data: unitsConfig};
         }catch(err){

@@ -32,7 +32,7 @@ module.exports = {
                 //console.log("unit[" + item[0][0] + "]: " + unitId);
             }
             //Item.update
-            return JSON.stringify( {msg: "ok", data: []} );
+            return {msg: "ok", data: []};
         }catch( err ){
             //console.log("Ошибка updateItem", err);
             //throw new AppError("Ошибка updateItem");//res.sendStatus(500);

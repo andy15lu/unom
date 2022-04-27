@@ -6,19 +6,25 @@ const Unit = require('./unit.js');
 // mocha = require('mocha');
 let chai = require('chai');
 const Template = require('../template/template.js');
+const Item = require('../item/item.js');
 //let chaiHttp = require('chai-http');
 const server = require('../../cmd/app.js').app;
 //let should = chai.should();
 
 let testTemplate = {};
 let testUnitId = null;
-let testUnit = {name:'Test Unit', template: null}
+let nameOfUnit = "Test Unit "+ (new Date).getTime();//.getUTCSeconds();//.getMilliseconds();
+
 let unitCRUD = () => {
-    before( (done)=>{
+    let deleteAllUnits = (done)=>{
         Unit.deleteMany({}, (err)=>{
-            done();
+            Item.deleteMany({},(err)=>{
+                done();
+            });
         });
-    });
+    }
+    before( (done)=> deleteAllUnits(done) );
+  //  after( (done)=> deleteAllUnits(done) );
     describe('GET units from empty base. /GET /units/[metadata, config]', () => {
         it('it should GET /units', (done) => {
         chai.request(server)
@@ -55,10 +61,10 @@ let unitCRUD = () => {
                     //   res.body.length.should.be.eql(0);
                     done();
                 });
-            });
+        });
     });
     describe('create Unit. /POST /units/create', () => {
-        let templateId = null;
+        let testUnit = {name:nameOfUnit, template: null}
         before( (done)=>{
             Template.findOne({}, (err, doc)=>{
                 testTemplate = doc;
@@ -67,6 +73,7 @@ let unitCRUD = () => {
                 done();
             });
         });
+        after( (done)=> deleteAllUnits(done) );
         it('it should NOT create unit without name',(done) => {
         chai.request(server)
         .post("/units/create")
@@ -76,8 +83,7 @@ let unitCRUD = () => {
             res.body.should.to.deep.equal({});
         })
         done();
-        })
-    
+        });
         it('it should NOT create unit without template',(done) => {
         chai.request(server)
         .post("/units/create")
@@ -104,7 +110,7 @@ let unitCRUD = () => {
             .post("/units/create")
             .send(testUnit)
             .end((err, res)=>{
-             //   console.log(res.text);
+            //  console.log(res.text);
                 res.should.have.status(200);
                 res.body.should.be.a('object');
                 res.body.should.have.property('msg');
@@ -113,20 +119,122 @@ let unitCRUD = () => {
                 res.body.data.should.have.property('name', testUnit.name);
                 //res.body.data.should.have.property('template').eql(testUnit.template);
                 res.body.data.should.have.property('items').be.a('array');
-                res.body.data.items.length.should.be.eq( testTemplate.items.length);
+                res.body.data.items.length.should.be.eq( testTemplate.items.length );
                 //res.body.data.items.should.to.deep.equal( testTemplate.items);
                 res.body.data.should.have.property('triggers').be.a('array');
-                res.body.data.triggers.length.should.be.eq( testTemplate.triggers.length);                
+                res.body.data.triggers.length.should.be.eq( testTemplate.triggers.length );
                 //res.body.data.triggers.length.should.be.eq(1);
-           //     console.log(res.text);
-            })
+            //  console.log(res.text);
+                testUnit.items = res.body.data.items;
+//                console.log(testUnit);
+            });
             done();
         });
     });
-    describe('update unit. /POST /items/update', ()=>{
-        it('it should NOT update with uncorrect ', (done)=>{
+    describe('get unit data. /GET /units/[metadata, config]', () => {
+        //перед первым тестом создаем unit с которого будем получать данные
+        let tmpUnit = null;
+        before('Create new Unit', (done) => {
+            Template.findOne({}, (err, template)=>{
+                Unit.create({name:"Test unit A", template: template._id}, (err, res)=>{
+                    tmpUnit = res;
+                    done();
+                });    
+            });
+        });
+        after( (done)=> deleteAllUnits(done) );
+        it('it should GET /units', (done) => {//проверяем получение данных для web
+        chai.request(server)
+            .get('/units')
+            .end((err, res) => {
+            //     console.log( res );
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property('msg', "units info list");
+                res.body.should.have.property('data');
+                res.body.data.should.be.a('array');
+                res.body.data.forEach((unit)=>{
+                    unit.should.have.property("name");
+                    unit.should.have.property("templateName");
+                    unit.items.forEach((item)=>{
+                        item.should.have.property('name');
+                        item.should.have.property('value');
+                        item.should.have.property('dim');
+                        item.should.have.property('status');
+                        });
+                })
+                //res.body.length.should.be.eql(0);
+                done();
+            });
+        });
+        it('it should GET /units/metadata', (done) => {//проверяем получение данных для скрипта опроса
+            chai.request(server)
+                .get('/units/metadata')
+                .end((err, res) => {
+                //     console.log( res );
+                    res.should.have.status(200);
+                    res.body.should.be.a('object');
+                    res.body.should.have.property('msg', "units metadata list");
+                    res.body.should.have.property('data');
+                    res.body.data.should.be.a('array');
+                    res.body.data.forEach((unit)=>{
+                        unit.should.have.property("name");
+                     //   unit.should.have.property("template");
+                        unit.items.forEach((item)=>{
+                            item.should.have.property('_id');
+                            item.should.have.property('name');
+                            item.should.have.property('meta');
+                            item.meta.should.be.a('array');
+                            });
+                    })
+                    //res.body.length.should.be.eql(0);
+                    done();
+                });
+            });
+        it('it should GET /units/config', (done) => {//проверяем получение данных для конфигурации через web
+            chai.request(server)
+                .get('/units/config')
+                .end((err, res) => {
+                //     console.log( res );
+                    res.should.have.status(200);
+                    res.body.should.be.a('object');
+                    res.body.should.have.property('msg', "units config list");
+                    res.body.should.have.property('data');
+                    res.body.data.should.be.a('array');
+                    res.body.data.forEach((unit)=>{
+                        unit.should.have.property("name");
+                        unit.should.have.property("templateName");
+                        unit.should.have.property("enabled");
+                    })
+                    //res.body.length.should.be.eql(0);
+                    done();
+                });
+            });
+    });
+    describe('update unit items. /POST /items/update', ()=>{
+        //перед первым тестом создаем unit с которого будем получать данные
+        let tmpUnit = null;
+        before('Create new Unit', (done) => {
+            Template.findOne({}, (err, template)=>{
+                Unit.create({name:"Test unit B", template: template._id}, (err, res)=>{
+                    tmpUnit = res;
+                    done();
+                });    
+            });
+        });
+        it('it should update unit items and calculate triggers. /POST /items/update', (done)=>{
+
             
-        })
+            done();
+        });
+        it('it should find item history and trigger event. /GET /history/:itemid', (done)=>{
+
+            done();
+        });
+        it('it should find trigger event. /GET /events/:triggerid', (done)=>{
+
+            done();
+        });
     });
 }
 module.exports = unitCRUD;
