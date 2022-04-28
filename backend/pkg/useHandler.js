@@ -8,6 +8,7 @@ let useHandler = async ( req, res, handler ) =>{
     catch( err ){
 
     //    res.s
+     //   console.log(err.message);
         errorLog(err);
         res.status(500).send(err.message);
         

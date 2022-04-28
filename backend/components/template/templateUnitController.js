@@ -3,20 +3,12 @@ const UnitTemplate = require("./template.js");
 
 module.exports = {
     createTemplate: async (req)=>{
-   /*     let example = {
-            name: "Comtech cdm qx",
-            code: "1001",
-            items: [
-                {name: "Eb/N0", type: "float", dim: "dB", meta:[{param:"ebno", oid:"1.3.6.1.1102.1.5.2.1.1.0.1"}]},
-                {name: "BER", type: "float", dim: "", meta:[{param:"ebno", oid:"1.3.6.1.1102.1.5.2.1.1.0.2"}]},
-            ],
-        
-        };*/
     //валидация запроса
-    if(req.body.name === undefined)
+ /*   if(req.body.name === undefined)
         throw new PropertyRequireError("name");
     if(req.body.code === undefined)
         throw new PropertyRequireError("code");
+    */
     if(req.body.items === undefined)
         throw new PropertyRequireError("items");
 
