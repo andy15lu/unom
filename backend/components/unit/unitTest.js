@@ -212,20 +212,70 @@ let unitCRUD = () => {
             });
     });
     describe('update unit items. /POST /items/update', ()=>{
-        //перед первым тестом создаем unit с которого будем получать данные
+        //перед первым тестом создаем unit который будем тестировать
         let tmpUnit = null;
         before('Create new Unit', (done) => {
-            Template.findOne({}, (err, template)=>{
-                Unit.create({name:"Test unit B", template: template._id}, (err, res)=>{
+
+        let testTemplate = {
+            "name": "Test template for triggers",
+            "code": "1",
+            "items": [
+                {"name": "Eb/N0", "type": "float", "dim": "dB", "code":"ebno", "meta":[{"param":"ebno"}]},
+            ],
+            "triggers": [
+                {"name":"Eb/N0 ниже нормы", "condition":"i.ebno < 8", "status": 3, "code": "ebno_alarm", "targetItem": "ebno"}
+            ],
+        };
+
+            Template.create(testTemplate, (err, template)=>{
+              //  console.log({name:"Test unit B", template: template._id});
+              chai.request(server)
+              .post("/units/create")
+              .send({name:"Test unit B", template: template._id})
+              .end((err, res)=>{
                     tmpUnit = res;
-                    done();
-                });    
+                done();
+              });
+
+                  
             });
         });
         it('it should update unit items and calculate triggers. /POST /items/update', (done)=>{
+            let newValues = [];
+            
+            //values[''+]
+            chai.request(server)
+            .get('/units/metadata')
+            .end((err, res)=>{
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property('msg');
+                res.body.should.have.property('data');
+                res.body.data.should.be.a('array');
+            //    console.log(res.body.data[0]);
+                for(let item of res.body.data[0].items){
+                    let val = {};
+                    val[''+item._id] = 0;
+                    newValues.push(val);
+                }
+              //  console.log(newValues);
+                chai.request(server)
+                .post('/items/update')
+                .send(newValues)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.should.have.property('body');
+                    res.body.should.to.deep.equal({msg: "ok", data: []});
+                    Unit.findById(tmpUnit._id,{trigger:1},(err, res)=>{
+                        res.triggers['state'] == 1;
+                    
+                    });
+                    done();
+                });
+            });
 
             
-            done();
+            
         });
         it('it should find item history and trigger event. /GET /history/:itemid', (done)=>{
 
