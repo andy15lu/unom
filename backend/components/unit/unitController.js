@@ -103,6 +103,17 @@ module.exports = {
             throw err;
         }
     },
+    getUnit: async (req) => {// информация для интерфейса настройки
+        try{
+            const units = await getUnitsPopulated({id:req.params['id']});
+            
+            return {msg:"unit info", data: units[0]};
+        }catch(err){
+            //throw("Ошибка getUnitsConfig");//res.sendStatus(500);
+            err["source"] = "getUnit";
+            throw err;
+        }
+    },
     createUnit: async (req) => {
         try{
         //    console.log(req);
@@ -202,7 +213,9 @@ module.exports = {
                 if( trigger.state !== newState){
                     let updateObj = {};
                     updateObj["triggers."+i+".state"] = newState;
-                    await Unit.findByIdAndUpdate(unit._id, updateObj );
+                    //updateObj["triggers."+i+".updetes"] = new Date();
+                    await Unit.findByIdAndUpdate(unit._id, updateObj, {new: true});
+                //    console.log(unitUpdated);
                     await Event.create({trigger: trigger._id, datetime: new Date(), value: newState});
                 }
                 //console.log(state, triggerFunc);

@@ -7,7 +7,7 @@ const { calcTriggers } = require("../unit/unitController.js");
 module.exports = {
     updateItems: async (req, res) =>{
         try{
-            console.log(req.body);
+         //   console.log(req.body);
 
             for(let i of req.body){
                 let item = Object.entries(i);
@@ -28,7 +28,7 @@ module.exports = {
                     console.log(updatedItem.history);
                 // пересчитываем триггеры после обновления item
                 const unitId = await Unit.findOne({"items": {$all:[ item[0][0] ]} }, {_id:1} );
-                calcTriggers({params: {id: unitId }});
+                await calcTriggers({params: {id: unitId }});
                 //console.log("unit[" + item[0][0] + "]: " + unitId);
             }
             //Item.update

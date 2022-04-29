@@ -7,6 +7,8 @@ const Unit = require('./unit.js');
 let chai = require('chai');
 const Template = require('../template/template.js');
 const Item = require('../item/item.js');
+const Event = require('../event/event.js');
+const History = require('../history/history.js');
 //let chaiHttp = require('chai-http');
 const server = require('../../cmd/app.js').app;
 //let should = chai.should();
@@ -215,75 +217,60 @@ let unitCRUD = () => {
         //перед первым тестом создаем unit который будем тестировать
         let tmpUnit = null;
         before('Create new Unit', (done) => {
-
-        let testTemplate = {
-            "name": "Test template for triggers",
-            "code": "1",
-            "items": [
-                {"name": "Eb/N0", "type": "float", "dim": "dB", "code":"ebno", "meta":[{"param":"ebno"}]},
-            ],
-            "triggers": [
-                {"name":"Eb/N0 ниже нормы", "condition":"i.ebno < 8", "status": 3, "code": "ebno_alarm", "targetItem": "ebno"}
-            ],
-        };
-
-            Template.create(testTemplate, (err, template)=>{
-              //  console.log({name:"Test unit B", template: template._id});
-              chai.request(server)
-              .post("/units/create")
-              .send({name:"Test unit B", template: template._id})
-              .end((err, res)=>{
-                    tmpUnit = res;
-                done();
-              });
-
-                  
-            });
-        });
-        it('it should update unit items and calculate triggers. /POST /items/update', (done)=>{
-            let newValues = [];
-            
-            //values[''+]
-            chai.request(server)
-            .get('/units/metadata')
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property('msg');
-                res.body.should.have.property('data');
-                res.body.data.should.be.a('array');
-            //    console.log(res.body.data[0]);
-                for(let item of res.body.data[0].items){
-                    let val = {};
-                    val[''+item._id] = 0;
-                    newValues.push(val);
-                }
-              //  console.log(newValues);
+            let testTemplate = {
+                "name": "Test template for triggers",
+                "code": "1",
+                "items": [
+                    {"name": "Eb/N0", "type": "float", "dim": "dB", "code":"ebno", "meta":[{"param":"ebno"}]},
+                ],
+                "triggers": [
+                    {"name":"Eb/N0 ниже нормы", "condition":"i.ebno < 8", "status": 3, "code": "ebno_alarm", "targetItem": "ebno"}
+                ],
+            };
+                Template.create(testTemplate, (err, template)=>{
+                //  console.log({name:"Test unit B", template: template._id});
                 chai.request(server)
-                .post('/items/update')
-                .send(newValues)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.should.have.property('body');
-                    res.body.should.to.deep.equal({msg: "ok", data: []});
-                    Unit.findById(tmpUnit._id,{trigger:1},(err, res)=>{
-                        res.triggers['state'] == 1;
-                    
-                    });
+                .post("/units/create")
+                .send({name:"Test unit B", template: template._id})
+                .end((err, res)=>{
+                        tmpUnit = res.body.data;
                     done();
                 });
-            });
-
-            
-            
+                });
         });
-        it('it should find item history and trigger event. /GET /history/:itemid', (done)=>{
-
-            done();
-        });
-        it('it should find trigger event. /GET /events/:triggerid', (done)=>{
-
-            done();
+        it('it should update items, calc triggers and check events and hstory. /POST /items/update', async ()=>{
+            let newValues = [];
+            let res = await chai.request(server)
+                    .get('/units/metadata')
+                    .send();
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property('msg');
+            res.body.should.have.property('data');
+            res.body.data.should.be.a('array');
+        //    console.log(res.body.data[0]);
+            for(let item of res.body.data[0].items){
+                let val = {};
+                val[''+item._id] = 0;
+                newValues.push(val);
+            }
+            res =  await chai.request(server).post('/items/update').send(newValues);
+            res.should.have.status(200);
+            res.should.have.property('body');
+            res.body.should.to.deep.equal({msg: "ok", data: []});
+            res = await chai.request(server)
+                    .get('/units/'+tmpUnit._id)
+                    .send();
+            let resultUnit = res.body.data;
+            if( +resultUnit.triggers[0]['state'] != 1 )//проверяем что триггер сработал
+                throw new Error('Trigger was not set to 1');
+            let event = await Event.findOne({trigger: resultUnit.triggers[0]._id});
+            if(!event)
+                throw new Error('Event was not found');
+            let history = await History.findOne({item: resultUnit.items[0]._id, value:0});
+            if(!history)
+                throw new Error('History was not found');
+          //  console.log(event);
         });
     });
 }
