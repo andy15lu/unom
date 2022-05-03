@@ -9,14 +9,49 @@ const Template = require('../template/template.js');
 const Item = require('../item/item.js');
 const Event = require('../event/event.js');
 const History = require('../history/history.js');
+const { post } = require('./unitRouter.js');
 //let chaiHttp = require('chai-http');
 const server = require('../../cmd/app.js').app;
 //let should = chai.should();
 
-let testTemplate = {};
+
 let testUnitId = null;
+let testTemplate = {
+    "name": "Test template",
+    "code": "1",
+    "items": [
+        {"name": "Item A", "type": "float", "dim": "dB", "code":"itema", "meta":[]},
+        {"name": "Item B", "type": "float", "dim": "", "code":"itemb", "meta":[]},
+    ],
+    "triggers": [
+        {"name":"Item A ниже нормы", "condition":"i.itema < 18", "status": 3, "code": "itema_alarm", "targetItem": "itema"}
+    ],
+};
 let nameOfUnit = "Test Unit "+ (new Date).getTime();//.getUTCSeconds();//.getMilliseconds();
 
+let shouldHaveMsgAndDataFields = (res) =>{
+    res.body.should.be.a('object');
+    res.body.should.have.property('msg');
+    res.body.should.have.property('data');
+    res.body.data.should.be.a('array');
+}
+let clearTestBase = (callback)=>{
+    Template.deleteMany({},()=>{
+        Unit.deleteMany({}, ()=>{
+            Item.deleteMany({}, callback);
+        });
+    });
+}
+let createTemplateAndUnit = (template, callback)=>{
+    Template.create(template, (err, res)=>{
+        chai.request(server)
+        .post('/units/create')
+        .send({name:"Test Unit A", template:res._id})
+        .end((err, res)=>{
+            callback(err, res);
+        });
+    });
+};
 let unitCRUD = () => {
     let deleteAllUnits = (done)=>{
         Unit.deleteMany({}, (err)=>{
@@ -244,10 +279,11 @@ let unitCRUD = () => {
                     .get('/units/metadata')
                     .send();
             res.should.have.status(200);
-            res.body.should.be.a('object');
+            /*res.body.should.be.a('object');
             res.body.should.have.property('msg');
             res.body.should.have.property('data');
-            res.body.data.should.be.a('array');
+            res.body.data.should.be.a('array');*/
+            shouldHaveMsgAndDataFields(res);
         //    console.log(res.body.data[0]);
             for(let item of res.body.data[0].items){
                 let val = {};
@@ -274,4 +310,255 @@ let unitCRUD = () => {
         });
     });
 }
-module.exports = unitCRUD;
+let unitSettingsCRUD = () =>{
+    describe("Unit settings CRUD", ()=>{
+
+        describe("get unit settings info", ()=>{
+
+        } );
+        describe("update name and enabled flag", ()=>{
+            let uId = null;
+            before((done)=>{
+                clearTestBase(()=>{
+                    createTemplateAndUnit(testTemplate, (err,res)=>{
+                        tmpUnit = res;
+                        uId = res._id;
+                        done();
+                    });
+                });
+            });
+            it("it should NOT set empty name", (done)=>{
+                chai.request(server)
+                .put("/units/"+uId)
+                .send({name:""})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    done();
+                });
+            });
+            it("it should set name only", (done)=>{
+                chai.request(server)
+                .put("/units/"+uId)
+                .send({name:"newName"})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    shouldHaveMsgAndDataFields(res);
+                    res.body.data[0].should.have.property('name', "newName");
+                    done();
+                });
+            });
+            it("it should set enabled flag only", (done)=>{
+                chai.request(server)
+                .put("/units/"+uId)
+                .send({enabled:true})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    shouldHaveMsgAndDataFields(res);
+                    res.body.data[0].should.have.property('enabled').eq(true);
+                    done();
+                });
+            });
+            it("it should set name and enabled flag", (done)=>{
+                chai.request(server)
+                .put("/units/"+uId)
+                .send({name:"newName2",enabled:true})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    shouldHaveMsgAndDataFields(res);
+                    res.body.data[0].should.have.property('name', "newName2");
+                    res.body.data[0].should.have.property('enabled').eq(true);
+                    done();
+                });
+            });
+        });
+        describe("update triggers", ()=>{
+            tmpUnit = null;
+            tId = null;
+            beforeEach((done)=>{
+                clearTestBase(()=>{
+                    createTemplateAndUnit(testTemplate, (err,res)=>{
+                        tmpUnit = res;
+                        tId = res.triggers[0]._id;
+                        done();
+                    });
+                });
+            });
+            it("it should NOT set empty triger name", (done)=>{
+                let tId = null;
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({name:""})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    done();
+                });
+            });
+            it("it should NOT set too long trigger name", (done)=>{
+                let tId = null;
+            
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({name:"TooLongTriggerName99999999999999999999999999999999999999"})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    done();
+                });
+            
+            });
+            it("it should NOT set incorrect trigger status", (done)=>{
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({status:"*%^&$#@9"})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    done();
+                });
+            });
+            it("it should NOT set empty trigger condition", (done)=>{
+                let tId = null;
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({condition:""})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    done();
+                });
+            });
+            it("it should NOT set too long trigger condition", (done)=>{
+                let tId = null;
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({condition:"hsggdfgjfgjfggerupewvcavniusvbfvdyfiwufbewvjskfhsaouifhewfdsvvvfvfvfvdvfdsvfdvfdvfdshgdskjfhsdjkf"})
+                .end((err, res) => {
+                    res.should.have.status(500);
+                    done();
+                });
+            });
+            it("it should set name only", (done)=>{
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({name:"New Trigger name"})
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    shouldHaveMsgAndDataFields(res);
+                    res.body.data[0].should.have.property('name', "New Trigger name");
+                    done();
+                });
+            });
+            it("it should set status only", (done)=>{
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({status:4})
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    shouldHaveMsgAndDataFields(res);
+                    res.body.data[0].should.have.property('status').eq(4);
+                    done();
+                });
+            });
+            it("it should set condition only", (done)=>{
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({condition:"i.itema<17"})
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    shouldHaveMsgAndDataFields(res);
+                    res.body.data[0].should.have.property('condition').eq("i.itema<17");
+                    done();
+                });
+            });
+            it("it should set enabled, name, status, condition, item", (done)=>{
+                chai.request(server)
+                .put("/units/trigger/"+tId)
+                .send({
+                    enabled: true,
+                    name: "New Trigger name",
+                    status: 4,
+                    condition:"i.itema<17",
+                    item:null,
+                })
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    shouldHaveMsgAndDataFields(res);
+                    res.body.data[0].should.have.property('status').eq(4);
+                    res.body.data[0].should.have.property('enabled').eq(true);
+                    res.body.data[0].should.have.property('name').eq("New Trigger name");
+                    res.body.data[0].should.have.property('condition').eq("i.itema<17");
+                    res.body.data[0].should.have.property('item').eq("itema");
+                    done();
+                });
+            });
+        });
+    });
+}
+module.exports = {unitCRUD, unitSettingsCRUD};
+/*
+Unit
+Change settings
+    change name. /PUT /units/:id
+        empty name
+        too long name
+        correct name
+    change enabled. /PUT /units/:id
+        empty
+        not boolean
+        true
+        false
+    change trigger. /PUT /units/trigger/:id
+        change trigger name
+            empty
+            too long
+            correct
+        change enabled
+            empty
+            not boolean
+            true
+            false
+        change status
+            empty
+            incorrect
+            correct
+        change item
+            empty is OK
+            too long 
+            correct
+        change condition
+            empty
+            too long
+            incorrect js code
+            correct js code
+    add trigger. /POST /units/trigger/
+        if no field
+            name
+            enabled
+            status
+            item
+            condition
+        fields validate
+            name field
+                empty name
+                used spaces
+                too long name
+            enabled field
+                empty
+                too long
+            status 
+                empty
+                too long
+            item
+                empty
+                too long
+            condition
+                empty
+                too long
+                incorrect js code
+        correct request
+            should create new trigger
+    change constants. /PUT /units/:id
+
+    add constant. /POST /units/addconst/:id
+
+    change item /PUT /items/:id
+
+    add item. /POST /unit/additem/:id
+*/
