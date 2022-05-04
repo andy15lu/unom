@@ -9,6 +9,7 @@ module.exports = {
     if(req.body.code === undefined)
         throw new PropertyRequireError("code");
     */
+    try{
     if(req.body.items === undefined)
         throw new PropertyRequireError("items");
 
@@ -16,6 +17,11 @@ module.exports = {
     if(!newTemplate)
         throw new AppError("Ошибка создания шаблона");
     return {msg:"Шаблон создан", data: newTemplate};
+    }
+    catch(err){
+        err["source"] = "createTemplate";
+        throw err;
+    }
     },
     getTemplate: async (req) =>{ //получить список всех шаблонов устройств
         try{

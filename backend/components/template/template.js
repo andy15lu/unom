@@ -5,18 +5,20 @@ const schema = new Schema({
     name: {
         type:       String,
         required:   true,
+        min: 1,
+        max: 10,
     },
     code: {
         type:       String,
         required:   true,
     },
     items: [{
-        name:   {type: String},
-        type:   {type: String},
-        dim:    {type: String},
-        code:    {type: String}, // уникальное для items кодовое имя
-        default:{type: String},
-        meta:   {type: Array},
+        name:   {type: String, required:true,},
+        type:   {type: String, required:false,default:"String"},
+        dim:    {type: String, required:true,default:""},
+        code:    {type: String, required:true,}, // уникальное для items кодовое имя
+        default:{type: String, required:false,default:""},
+        meta:   {type: Array, required:true,},
     }],
     triggers: [{
         name:       {type:String},

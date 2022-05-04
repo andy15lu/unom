@@ -10,7 +10,7 @@ let useHandler = async ( req, res, handler ) =>{
     //    res.s
      //   console.log(err.message);
         errorLog(err);
-        res.status(500).send(err.message);
+        res.status(500).send({msg:err.message,data:[]});
         
     }
 };
