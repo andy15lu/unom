@@ -16,7 +16,7 @@ const server = require('../../cmd/app.js').app;
 
 
 let testUnitId = null;
-let testTemplate = {
+let templateObject = {
     "name": "Test template",
     "code": "1",
     "items": [
@@ -318,9 +318,9 @@ let unitSettingsCRUD = () =>{
         } );
         describe("update name and enabled flag", ()=>{
             let uId = null;
-            before((done)=>{
+            before("Clear db and create Unit", (done)=>{
                 clearTestBase(()=>{
-                    createTemplateAndUnit(testTemplate, (err,res)=>{
+                    createTemplateAndUnit(templateObject, (err,res)=>{
                         tmpUnit = res;
                         uId = res._id;
                         done();
