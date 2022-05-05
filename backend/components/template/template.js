@@ -5,17 +5,25 @@ const schema = new Schema({
     name: {
         type:       String,
         required:   true,
-        min: 1,
-        max: 10,
+        validate:{
+            validator: (v) => {
+                return v.length < 64 && /[w\p{sc=Cyrillic}-]+/.test(v);
+            }
+        }
     },
     code: {
         type:       String,
         required:   true,
+        validate:{
+            validator: (v) => {
+                return v.length < 32 && !/\D+/.test(v);
+            }
+        }
     },
     items: [{
         name:   {type: String, required:true,},
         type:   {type: String, required:false,default:"String"},
-        dim:    {type: String, required:true,default:""},
+        dim:    {type: String, required:false,default:""},
         code:    {type: String, required:true,}, // уникальное для items кодовое имя
         default:{type: String, required:false,default:""},
         meta:   {type: Array, required:true,},

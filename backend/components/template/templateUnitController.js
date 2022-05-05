@@ -10,13 +10,13 @@ module.exports = {
         throw new PropertyRequireError("code");
     */
     try{
-    if(req.body.items === undefined)
-        throw new PropertyRequireError("items");
+        if(req.body.items === undefined)
+            throw new PropertyRequireError("items");
 
-    const newTemplate = await UnitTemplate.create(req.body);
-    if(!newTemplate)
-        throw new AppError("Ошибка создания шаблона");
-    return {msg:"Шаблон создан", data: newTemplate};
+        const newTemplate = await UnitTemplate.create(req.body);
+        if(!newTemplate)
+            throw new AppError("Ошибка создания шаблона");
+        return {msg:"Шаблон создан", data: [newTemplate]};
     }
     catch(err){
         err["source"] = "createTemplate";
@@ -26,7 +26,7 @@ module.exports = {
     getTemplate: async (req) =>{ //получить список всех шаблонов устройств
         try{
             let template = await UnitTemplate.findById( req.params.id );
-            return {msg:"", data:template};
+            return {msg:"", data: [template]};
         }catch(err){
             console.log("getTemplate error: "+ err);
             throw new Error("Ошибка получения данный о шаблоне");

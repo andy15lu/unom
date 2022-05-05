@@ -3,6 +3,7 @@ const request = require('supertest');
 const mocha = require('mocha');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+const Template = require('./template.js');
 
 
 let should = chai.should();
@@ -36,6 +37,9 @@ let shouldHaveMsgAndDataFields = (res) =>{
 function testTemplateCRUD(){
 
     describe('Template CRUD', ()=>{
+        before('',(done)=>{
+            Template.deleteMany({},()=>done());
+        })
         describe('Create. With incorrect name', ()=>{
             it('it should NOT create with no "name"',(done)=>{
                 chai.request(server)
@@ -114,7 +118,7 @@ function testTemplateCRUD(){
                     done();
                 });
             });
-            it('it should NOT create with special symbols in "code"',(done)=>{
+            it('it should NOT create with no digit symbols in "code"',(done)=>{
                 chai.request(server)
                 .post('/template/add')
                 .send({name:"test name",code:"h g()!@#$%^&^'&*'&()~\  \\098'/", items:[], triggers:[]})
@@ -125,6 +129,29 @@ function testTemplateCRUD(){
                 });
             });
         });
+        describe('Create. With correct data', ()=>{
+            it('it should create template', (done)=>{
+                let correctTemplateObject = {
+                    "name": "Test template",
+                    "code": "1",
+                    "items": [
+                        {"name": "Eb/N0", "type": "float", "dim": "dB", "code":"ebno", "meta":[{"param":"ebno", "oid":"1.3.6.1.1102.1.5.2.1.1.0.1"}]},
+                        {"name": "BER", "type": "float", "dim": "", "code":"ber", "meta":[{"param":"ebno", "oid":"1.3.6.1.1102.1.5.2.1.1.0.2"}]},
+                    ],
+                    "triggers": [
+                        {"name":"Eb/N0 ниже нормы", "condition":"i.ebno < 8", "status": 3, "code": "ebno_alarm", "targetItem": "ebno"}
+                    ],
+                };
+                chai.request(server)
+                .post('/template/add')
+                .send(correctTemplateObject)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    shouldHaveMsgAndDataFields(res);
+                    done();
+                });
+            })
+        })
     });
 }
 
