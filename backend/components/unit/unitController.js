@@ -152,7 +152,7 @@ module.exports = {
                     } );
                 }
             const createdUnit = await Unit.create(newUnit);
-            return {msg:"unit created", data: createdUnit };
+            return {msg:"unit created", data: [createdUnit] };
         }catch(err){
             err["source"] = "createUnit";//this.constructor.name;
             throw err;
@@ -229,6 +229,47 @@ module.exports = {
             throw err;
         }
     },
+    updateUnit: async (req) =>{
+        //обновить unit (name, triggers)
+       try
+       {
+            let updatedUnit = null;
+            let obj = {};
+            if(req.body.name)
+               obj['name'] = req.body.name;
+            if(req.body.enabled)
+                obj['enabled'] = req.body.enabled;
+            if(req.body.constants)
+                obj['constants'] = req.body.constants;
+            
+            if(Object.keys(obj).length)
+                updatedUnit = await Unit.findOneAndUpdate({'_id':req.params.id}, obj, {new: true});
+            let k =  Array.isArray(req.body.triggers);
+            if( req.body.triggers && Array.isArray(req.body.triggers) ){
+                for(let trigger of req.body.triggers){
+                    let tObj = {};// формируем объект для обновления триггера
+                    //заполняем его только полями name, condition, status, targetItem
+                    if(trigger.name)
+                        tObj['triggers.$.name'] = trigger.name;
+                    if(trigger.condition)
+                        tObj['triggers.$.condition'] = trigger.condition;
+                    if(trigger.status)
+                        tObj['triggers.$.status'] = trigger.status;
+                    if(trigger.targetItem)
+                        tObj['triggers.$.targetItem'] = trigger.targetItem;
+                    if(Object.keys(tObj).length)
+                        updatedUnit = await Unit.findOneAndUpdate({'triggers._id':trigger._id}, {$set:tObj}, {new: true});
+                }
+            }
+            if(updatedUnit === null)
+                throw new ValidationError();
+            return {msg:"unit updated",data:[updatedUnit]};
+        }
+        catch(err){
+            err['source'] = "updateUnit";
+            throw err;
+        }
+    },
     updateTrigger: async (req) =>{
         /*
         {
@@ -240,17 +281,23 @@ module.exports = {
         }
         */
        //let newTrigger = {name: "new", condition:"false", status:1, targetItem:0};
-       
-       let newTrigger = req.body;
-       console.log(newTrigger);
-       let unitUpdated = await Unit.findOneAndUpdate({'triggers._id':req.params.id},
-            {$set:{
-                'triggers.$.name': newTrigger.name,
-                'triggers.$.condition': newTrigger.condition,
-                'triggers.$.status': newTrigger.status,
-                'triggers.$.targetItem': newTrigger.targetItem
-            }}, {new: true});
-        return JSON.stringify(unitUpdated);
+       try
+       {
+            let newTrigger = req.body;
+            //console.log(newTrigger);
+            let unitUpdated = await Unit.findOneAndUpdate({'triggers._id':req.params.id},
+                    {$set:{
+                        'triggers.$.name': newTrigger.name,
+                        'triggers.$.condition': newTrigger.condition,
+                        'triggers.$.status': newTrigger.status,
+                        'triggers.$.targetItem': newTrigger.targetItem
+                    }}, {new: true});
+                return {msg:"trigger updated",data:[unitUpdated]};
+        }
+        catch(err){
+            err['source'] = "updateTrigger";
+            throw err;
+        }
     },
 
 }

@@ -3,25 +3,25 @@ const UnitTemplate = require("./template.js");
 
 module.exports = {
     createTemplate: async (req)=>{
-    //валидация запроса
- /*   if(req.body.name === undefined)
-        throw new PropertyRequireError("name");
-    if(req.body.code === undefined)
-        throw new PropertyRequireError("code");
-    */
-    try{
-        if(req.body.items === undefined)
-            throw new PropertyRequireError("items");
-
-        const newTemplate = await UnitTemplate.create(req.body);
-        if(!newTemplate)
-            throw new AppError("Ошибка создания шаблона");
-        return {msg:"Шаблон создан", data: [newTemplate]};
-    }
-    catch(err){
-        err["source"] = "createTemplate";
-        throw err;
-    }
+        //валидация запроса
+    /*   if(req.body.name === undefined)
+            throw new PropertyRequireError("name");
+        if(req.body.code === undefined)
+            throw new PropertyRequireError("code");
+        */
+        try{
+    /*        if(req.body.items === undefined)
+                throw new PropertyRequireError("items");
+*/
+            const newTemplate = await UnitTemplate.create(req.body);
+            if(!newTemplate)
+                throw new AppError("Ошибка создания шаблона");
+            return {msg:"Шаблон создан", data: [newTemplate]};
+        }
+        catch(err){
+            err["source"] = "createTemplate";
+            throw err;
+        }
     },
     getTemplate: async (req) =>{ //получить список всех шаблонов устройств
         try{

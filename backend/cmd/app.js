@@ -11,7 +11,7 @@ const itemRouter = require("../components/item/itemRouter.js");
 
 
 app.use("/template",  templateRouter );
-app.use("/units",     unitRouter );
+app.use(/\/units?/,     unitRouter );
 app.use("/items",     itemRouter );
 
 let dbName = "dms"

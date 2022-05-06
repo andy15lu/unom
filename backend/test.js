@@ -5,6 +5,6 @@ const templateCRUD = require("./components/template/templateTest.js");
 
 
 
-describe('Template CRUD', ()=>templateCRUD());
+//describe('Template CRUD', ()=>templateCRUD());
 //describe('Unit CRUD', ()=>unitCRUD());
-//describe('Unit settings CRUD', ()=>unitSettingsCRUD());
+describe('Unit settings CRUD', ()=>unitSettingsCRUD());

@@ -21,20 +21,40 @@ const schema = new Schema({
         }
     },
     items: [{
-        name:   {type: String, required:true,},
+        name:   {
+            type: String, required:true,
+            validate:{
+                validator: (v) => {
+                    return v.length < 64 && /[w\p{sc=Cyrillic}-]+/.test(v);
+                }
+            }
+        },
         type:   {type: String, required:false,default:"String"},
-        dim:    {type: String, required:false,default:""},
-        code:    {type: String, required:true,}, // уникальное для items кодовое имя
+        dim:    {type: String, required:false,default:"",validate:{
+            validator: (v) => {
+                return v.length < 12 && /[w\p{sc=Cyrillic}-]+/.test(v);
+            }
+        }},
+        code:   {type: String, required:true,}, // уникальное для items кодовое имя
         default:{type: String, required:false,default:""},
         meta:   {type: Array, required:true,},
     }],
     triggers: [{
-        name:       {type:String},
+        name:  {
+            type:String,
+            validate:{
+            validator: (v) => {
+                return v.length < 32 && !/\D+/.test(v);
+            }
+        }},
         condition:  {type:String},
         status:     {type:Number},
-        code:       {type:String},
+        code:       {type:String,validate:{
+            validator: (v) => {
+                return v.length < 32 && !/\D+/.test(v);
+            }
+        }},
         targetItem: {type:String}, //код элемента данных на статус которого влияет триггер
-
     }],
     constants: [{
         code: {type:String},

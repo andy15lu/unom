@@ -48,7 +48,7 @@ let createTemplateAndUnit = (template, callback)=>{
         .post('/units/create')
         .send({name:"Test Unit A", template:res._id})
         .end((err, res)=>{
-            callback(err, res);
+            callback(err, res.body.data[0]);
         });
     });
 };
@@ -333,6 +333,7 @@ let unitSettingsCRUD = () =>{
                 .send({name:""})
                 .end((err, res) => {
                     res.should.have.status(500);
+                    shouldHaveMsgAndDataFields(res);
                     done();
                 });
             });
@@ -341,7 +342,7 @@ let unitSettingsCRUD = () =>{
                 .put("/units/"+uId)
                 .send({name:"newName"})
                 .end((err, res) => {
-                    res.should.have.status(500);
+                    res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
                     res.body.data[0].should.have.property('name', "newName");
                     done();
@@ -352,7 +353,7 @@ let unitSettingsCRUD = () =>{
                 .put("/units/"+uId)
                 .send({enabled:true})
                 .end((err, res) => {
-                    res.should.have.status(500);
+                    res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
                     res.body.data[0].should.have.property('enabled').eq(true);
                     done();
@@ -363,7 +364,7 @@ let unitSettingsCRUD = () =>{
                 .put("/units/"+uId)
                 .send({name:"newName2",enabled:true})
                 .end((err, res) => {
-                    res.should.have.status(500);
+                    res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
                     res.body.data[0].should.have.property('name', "newName2");
                     res.body.data[0].should.have.property('enabled').eq(true);
@@ -371,12 +372,13 @@ let unitSettingsCRUD = () =>{
                 });
             });
         });
+
         describe("update triggers", ()=>{
             tmpUnit = null;
             tId = null;
             beforeEach((done)=>{
                 clearTestBase(()=>{
-                    createTemplateAndUnit(testTemplate, (err,res)=>{
+                    createTemplateAndUnit(templateObject, (err,res)=>{
                         tmpUnit = res;
                         tId = res.triggers[0]._id;
                         done();
@@ -384,21 +386,20 @@ let unitSettingsCRUD = () =>{
                 });
             });
             it("it should NOT set empty triger name", (done)=>{
-                let tId = null;
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({name:""})
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[{_id: tId, name:""}]})
                 .end((err, res) => {
                     res.should.have.status(500);
                     done();
                 });
             });
             it("it should NOT set too long trigger name", (done)=>{
-                let tId = null;
+                
             
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({name:"TooLongTriggerName99999999999999999999999999999999999999"})
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[{_id: tId, name:"TooLongTriggerName99999999999999999999999999999999999999"}]})
                 .end((err, res) => {
                     res.should.have.status(500);
                     done();
@@ -407,37 +408,37 @@ let unitSettingsCRUD = () =>{
             });
             it("it should NOT set incorrect trigger status", (done)=>{
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({status:"*%^&$#@9"})
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[{_id: tId, status:"*%^&$#@9"}]})
                 .end((err, res) => {
                     res.should.have.status(500);
                     done();
                 });
             });
             it("it should NOT set empty trigger condition", (done)=>{
-                let tId = null;
+                
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({condition:""})
+                .put("/units/"+tmpUnit._id)
+                .send({trigger:[{_id: tId, condition:""}]})
                 .end((err, res) => {
                     res.should.have.status(500);
                     done();
                 });
             });
             it("it should NOT set too long trigger condition", (done)=>{
-                let tId = null;
+                
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({condition:"hsggdfgjfgjfggerupewvcavniusvbfvdyfiwufbewvjskfhsaouifhewfdsvvvfvfvfvdvfdsvfdvfdvfdshgdskjfhsdjkf"})
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[{_id: tId, condition:"hsggdfgjfgjfggerupewvcavniusvbfvdyfiwufbewvjskfhsaouifhewfdsvvvfvfvfvdvfdsvfdvfdvfdshgdskjfhsdjkf"}]})
                 .end((err, res) => {
                     res.should.have.status(500);
                     done();
                 });
             });
-            it("it should set name only", (done)=>{
+            it("it should change trigget name only", (done)=>{
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({name:"New Trigger name"})
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[{_id: tId, name:"New Trigger name"}]})
                 .end((err, res) => {
                     res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
@@ -445,10 +446,10 @@ let unitSettingsCRUD = () =>{
                     done();
                 });
             });
-            it("it should set status only", (done)=>{
+            it("it should change status only", (done)=>{
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({status:4})
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[{status:4}]})
                 .end((err, res) => {
                     res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
@@ -456,10 +457,10 @@ let unitSettingsCRUD = () =>{
                     done();
                 });
             });
-            it("it should set condition only", (done)=>{
+            it("it should change condition only", (done)=>{
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({condition:"i.itema<17"})
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[{condition:"i.itema<17"}]})
                 .end((err, res) => {
                     res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
@@ -469,13 +470,16 @@ let unitSettingsCRUD = () =>{
             });
             it("it should set enabled, name, status, condition, item", (done)=>{
                 chai.request(server)
-                .put("/units/trigger/"+tId)
-                .send({
-                    enabled: true,
-                    name: "New Trigger name",
-                    status: 4,
-                    condition:"i.itema<17",
-                    item:null,
+                .put("/units/"+tmpUnit._id)
+                .send({triggers:[
+                    {
+                        _id:tId,
+                        enabled: true,
+                        name: "New Trigger name",
+                        status: 4,
+                        condition:"i.itema<17",
+                        item:null,
+                    }]
                 })
                 .end((err, res) => {
                     res.should.have.status(200);
