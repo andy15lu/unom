@@ -15,7 +15,7 @@ const server = require('../../cmd/app.js').app;
 //let should = chai.should();
 
 
-let testUnitId = null;
+//let testUnitId = null;
 let templateObject = {
     "name": "Test template",
     "code": "1",
@@ -43,27 +43,51 @@ let clearTestBase = (callback)=>{
     });
 }
 let createTemplateAndUnit = (template, callback)=>{
+    if(!template){
+        template = {
+            "name": "Test template",
+            "code": "1",
+            "items": [
+                {"name": "Item A", "type": "float", "dim": "dB", "code":"itema", "meta":[]},
+                {"name": "Item B", "type": "float", "dim": "", "code":"itemb", "meta":[]},
+            ],
+            "triggers": [
+                {"name":"Item A ниже нормы", "condition":"i.itema < 18", "status": 3, "code": "itema_alarm", "targetItem": "itema"}
+            ],
+        };
+    }
     Template.create(template, (err, res)=>{
         chai.request(server)
         .post('/units/create')
-        .send({name:"Test Unit A", template:res._id})
+        .send({name:"Test Unit A "+ (new Date).getTime(), template:res._id})
         .end((err, res)=>{
             callback(err, res.body.data[0]);
         });
     });
 };
 let unitCRUD = () => {
-    let deleteAllUnits = (done)=>{
+/*    let deleteAllUnits = (done)=>{
         Unit.deleteMany({}, (err)=>{
             Item.deleteMany({},(err)=>{
                 done();
             });
         });
-    }
-    before( (done)=> deleteAllUnits(done) );
+    }*/
+/*    let uId = null;
+    before( (done)=> {
+        clearTestBase(()=>{
+            createTemplateAndUnit(null, (err,res)=>{
+                uId = res._id;
+                done();
+            });
+        });
+    } );
+    */
   //  after( (done)=> deleteAllUnits(done) );
     describe('GET units from empty base. /GET /units/[metadata, config]', () => {
-        it('it should GET /units', (done) => {
+        before( (done)=>clearTestBase(()=>done()) );
+        after( (done)=>clearTestBase(()=>done()) );
+        it('it should get []. /GET /units', (done) => {
         chai.request(server)
             .get('/units')
             .end((err, res) => {
@@ -75,7 +99,7 @@ let unitCRUD = () => {
                 done();
             });
         });
-        it('it should GET /units/metadata', (done) => {
+        it('it should get []. /GET /units/metadata', (done) => {
         chai.request(server)
             .get('/units/metadata')
             .end((err, res) => {
@@ -87,82 +111,96 @@ let unitCRUD = () => {
                 done();
             });
         });
-        it('it should GET /units/config', (done) => {
-            chai.request(server)
-                .get('/units/config')
-                .end((err, res) => {
-                //     console.log( res );
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.to.deep.equal({msg:"units config list", data:[]});
-                    //   res.body.length.should.be.eql(0);
-                    done();
-                });
-        });
-    });
-    describe('create Unit. /POST /units/create', () => {
-        let testUnit = {name:nameOfUnit, template: null}
-        before( (done)=>{
-            Template.findOne({}, (err, doc)=>{
-                testTemplate = doc;
-//                templateId = doc['_id'];
-                testUnit.template = testTemplate._id;
+        it('it should get []. /GET /units/config', (done) => {
+        chai.request(server)
+            .get('/units/config')
+            .end((err, res) => {
+            //     console.log( res );
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.to.deep.equal({msg:"units config list", data:[]});
+                //   res.body.length.should.be.eql(0);
                 done();
             });
         });
-        after( (done)=> deleteAllUnits(done) );
+    });
+    describe('create Unit. /POST /units/create', () => {
+        let testTemplate = null;
+        before( (done)=>{
+            let templateObj = {
+                "name": "Test template",
+                "code": "1",
+                "items": [
+                    {"name": "Item A", "type": "float", "dim": "dB", "code":"itema", "meta":[]},
+                    {"name": "Item B", "type": "float", "dim": "", "code":"itemb", "meta":[]},
+                ],
+                "triggers": [
+                    {"name":"Item A ниже нормы", "condition":"i.itema < 18", "status": 3, "code": "itema_alarm", "targetItem": "itema"}
+                ],
+            };
+            Template.create(templateObj, (err, res)=>{
+                testTemplate = res;
+                done();
+            });
+        });
+        after( (done)=>clearTestBase(()=>done()) );
         it('it should NOT create unit without name',(done) => {
-        chai.request(server)
-        .post("/units/create")
-        .send({template:'11'})
-        .end((err, res)=>{
-            res.should.have.status(500);
-            res.body.should.to.deep.equal({});
-        })
-        done();
+            chai.request(server)
+            .post("/units/create")
+            .send({template:testTemplate._id})
+            .end((err, res)=>{
+                res.should.have.status(500);
+                shouldHaveMsgAndDataFields(res);
+                //res.body.should.to.deep.equal({});
+            })
+            done();
         });
         it('it should NOT create unit without template',(done) => {
         chai.request(server)
         .post("/units/create")
-        .send({name:'11'})
+        .send({name:'Only name'})
         .end((err, res)=>{
             res.should.have.status(500);
-            res.body.should.to.deep.equal({});
+            shouldHaveMsgAndDataFields(res);
+            //res.body.should.to.deep.equal({});
         })
         done();
         });
         it('it should NOT create unit with bad template id',(done) => {
         chai.request(server)
         .post("/units/create")
-        .send({name:'11', template:"0012245212452441"})
+        .send({name:'Unit name', template:"0012245212452441"})
         .end((err, res)=>{
             res.should.have.status(500);
-            res.body.should.to.deep.equal({});
+            shouldHaveMsgAndDataFields(res);
+            //res.body.should.to.deep.equal({});
         })
         done();
         });
         it('it should create unit',(done) => {
         //    console.log(testUnit);
+            let testUnit = {name:"Test unit", template: testTemplate._id};
             chai.request(server)
             .post("/units/create")
             .send(testUnit)
             .end((err, res)=>{
             //  console.log(res.text);
                 res.should.have.status(200);
-                res.body.should.be.a('object');
+                shouldHaveMsgAndDataFields(res);
+               /* res.body.should.be.a('object');
                 res.body.should.have.property('msg');
-                res.body.should.have.property('data');
-                res.body.data.should.have.property('_id');
-                res.body.data.should.have.property('name', testUnit.name);
+                res.body.should.have.property('data');*/
+                res.body.data[0].should.have.property('_id');
+                res.body.data[0].should.have.property('name', testUnit.name);
                 //res.body.data.should.have.property('template').eql(testUnit.template);
-                res.body.data.should.have.property('items').be.a('array');
-                res.body.data.items.length.should.be.eq( testTemplate.items.length );
+                res.body.data[0].should.have.property('items').be.a('array');
+                res.body.data[0].items.length.should.be.eq( testTemplate.items.length );
                 //res.body.data.items.should.to.deep.equal( testTemplate.items);
-                res.body.data.should.have.property('triggers').be.a('array');
-                res.body.data.triggers.length.should.be.eq( testTemplate.triggers.length );
+                res.body.data[0].should.have.property('triggers').be.a('array');
+                res.body.data[0].triggers.length.should.be.eq( testTemplate.triggers.length );
                 //res.body.data.triggers.length.should.be.eq(1);
             //  console.log(res.text);
-                testUnit.items = res.body.data.items;
+                testUnit.items = res.body.data[0].items;
 //                console.log(testUnit);
             });
             done();
@@ -170,16 +208,8 @@ let unitCRUD = () => {
     });
     describe('get unit data. /GET /units/[metadata, config]', () => {
         //перед первым тестом создаем unit с которого будем получать данные
-        let tmpUnit = null;
-        before('Create new Unit', (done) => {
-            Template.findOne({}, (err, template)=>{
-                Unit.create({name:"Test unit A", template: template._id}, (err, res)=>{
-                    tmpUnit = res;
-                    done();
-                });    
-            });
-        });
-        after( (done)=> deleteAllUnits(done) );
+        before((done)=>clearTestBase(()=>createTemplateAndUnit(null, (err, res)=>done())));
+    //    after( (done)=> deleteAllUnits(done) );
         it('it should GET /units', (done) => {//проверяем получение данных для web
         chai.request(server)
             .get('/units')
@@ -227,7 +257,7 @@ let unitCRUD = () => {
                     //res.body.length.should.be.eql(0);
                     done();
                 });
-            });
+        });
         it('it should GET /units/config', (done) => {//проверяем получение данных для конфигурации через web
             chai.request(server)
                 .get('/units/config')
@@ -246,7 +276,7 @@ let unitCRUD = () => {
                     //res.body.length.should.be.eql(0);
                     done();
                 });
-            });
+        });
     });
     describe('update unit items. /POST /items/update', ()=>{
         //перед первым тестом создаем unit который будем тестировать
@@ -316,12 +346,13 @@ let unitSettingsCRUD = () =>{
         describe("get unit settings info", ()=>{
 
         } );
+        
         describe("update name and enabled flag", ()=>{
             let uId = null;
             before("Clear db and create Unit", (done)=>{
                 clearTestBase(()=>{
                     createTemplateAndUnit(templateObject, (err,res)=>{
-                        tmpUnit = res;
+                    //   tmpUnit = res;
                         uId = res._id;
                         done();
                     });
@@ -399,9 +430,10 @@ let unitSettingsCRUD = () =>{
             
                 chai.request(server)
                 .put("/units/"+tmpUnit._id)
-                .send({triggers:[{_id: tId, name:"TooLongTriggerName99999999999999999999999999999999999999"}]})
+                .send({triggers:[{_id: tId, name:"TooLongTriggerName94545645645456456456hjlghghkuyoighj454569999999999999999999999999999999999999"}]})
                 .end((err, res) => {
                     res.should.have.status(500);
+                    shouldHaveMsgAndDataFields(res);
                     done();
                 });
             
@@ -416,7 +448,6 @@ let unitSettingsCRUD = () =>{
                 });
             });
             it("it should NOT set empty trigger condition", (done)=>{
-                
                 chai.request(server)
                 .put("/units/"+tmpUnit._id)
                 .send({trigger:[{_id: tId, condition:""}]})
@@ -429,7 +460,15 @@ let unitSettingsCRUD = () =>{
                 
                 chai.request(server)
                 .put("/units/"+tmpUnit._id)
-                .send({triggers:[{_id: tId, condition:"hsggdfgjfgjfggerupewvcavniusvbfvdyfiwufbewvjskfhsaouifhewfdsvvvfvfvfvdvfdsvfdvfdvfdshgdskjfhsdjkf"}]})
+                .send({triggers:[{_id: tId, condition:`hsggdfgjfgjfggerupewvcavniusvbfvdyfiwuf888888
+                88888888888888888888888888888888888888888888888888888888888888888888888888
+                888888888888888888888888888888888888888888888888888888888888888888888
+                ncs;adfhuifbiovrbrpaebnivbaifhjdskfgdsfkjgdsafkjdsgfhjksadfghskjdafgshkjfsa
+                fsfghjsdkgfhsjdkfghsjdfghdsjfghsdjkfgshdjfgdshjfgdshjfkgdshkjfadf
+                fghdsjkfgshdjkfghdsjgfhjsdgfhjsdgakfhjskdgafhjksgdafhkjdsgfa
+                sbviaerbvivbruvirebriovbuifbariavbriaviubraviarbp
+                88888888888888888888888bewvjskfhsaouifhewfdsvvvfvfvfvdvfds
+                vfdvfdvfdshgdskjfhsdjkf`}]})
                 .end((err, res) => {
                     res.should.have.status(500);
                     done();
@@ -442,29 +481,29 @@ let unitSettingsCRUD = () =>{
                 .end((err, res) => {
                     res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
-                    res.body.data[0].should.have.property('name', "New Trigger name");
+                    res.body.data[0].triggers[0].should.have.property('name', "New Trigger name");
                     done();
                 });
             });
             it("it should change status only", (done)=>{
                 chai.request(server)
                 .put("/units/"+tmpUnit._id)
-                .send({triggers:[{status:4}]})
+                .send({triggers:[{_id: tId, status:4}]})
                 .end((err, res) => {
                     res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
-                    res.body.data[0].should.have.property('status').eq(4);
+                    res.body.data[0].triggers[0].should.have.property('status').eq(4);
                     done();
                 });
             });
             it("it should change condition only", (done)=>{
                 chai.request(server)
                 .put("/units/"+tmpUnit._id)
-                .send({triggers:[{condition:"i.itema<17"}]})
+                .send({triggers:[{_id:tId,condition:"i.itema<17"}]})
                 .end((err, res) => {
                     res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
-                    res.body.data[0].should.have.property('condition').eq("i.itema<17");
+                    res.body.data[0].triggers[0].should.have.property('condition').eq("i.itema<17");
                     done();
                 });
             });
@@ -484,11 +523,11 @@ let unitSettingsCRUD = () =>{
                 .end((err, res) => {
                     res.should.have.status(200);
                     shouldHaveMsgAndDataFields(res);
-                    res.body.data[0].should.have.property('status').eq(4);
-                    res.body.data[0].should.have.property('enabled').eq(true);
-                    res.body.data[0].should.have.property('name').eq("New Trigger name");
-                    res.body.data[0].should.have.property('condition').eq("i.itema<17");
-                    res.body.data[0].should.have.property('item').eq("itema");
+                    res.body.data[0].triggers[0].should.have.property('status').eq(4);
+                    res.body.data[0].triggers[0].should.have.property('enabled').eq(true);
+                    res.body.data[0].triggers[0].should.have.property('name').eq("New Trigger name");
+                    res.body.data[0].triggers[0].should.have.property('condition').eq("i.itema<17");
+                    res.body.data[0].triggers[0].should.have.property('targetItem').eq("itema");
                     done();
                 });
             });

@@ -25,14 +25,14 @@ const schema = new Schema({
             type: String, required:true,
             validate:{
                 validator: (v) => {
-                    return v.length < 64 && /[w\p{sc=Cyrillic}-]+/.test(v);
+                    return v.length < 64 ;//&& /[w\p{sc=Cyrillic}-]+/.test(v);
                 }
             }
         },
         type:   {type: String, required:false,default:"String"},
         dim:    {type: String, required:false,default:"",validate:{
             validator: (v) => {
-                return v.length < 12 && /[w\p{sc=Cyrillic}-]+/.test(v);
+                return v.length < 12 ;//&& /[w\p{sc=Cyrillic}-]+/.test(v);
             }
         }},
         code:   {type: String, required:true,}, // уникальное для items кодовое имя
@@ -43,15 +43,15 @@ const schema = new Schema({
         name:  {
             type:String,
             validate:{
-            validator: (v) => {
-                return v.length < 32 && !/\D+/.test(v);
-            }
+                validator: (v) => {
+                    return v.length < 64 && /[\/\w\p{sc=Cyrillic}-]+/.test(v);
+                }
         }},
         condition:  {type:String},
         status:     {type:Number},
         code:       {type:String,validate:{
             validator: (v) => {
-                return v.length < 32 && !/\D+/.test(v);
+                return v.length < 32 && /\w+/.test(v);
             }
         }},
         targetItem: {type:String}, //код элемента данных на статус которого влияет триггер

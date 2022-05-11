@@ -39,6 +39,7 @@ let getUnitsPopulated = async ( filterObj ) =>{
         return {_id: unit._id, templateName: unit.template.name, name: unit.name, items: itemsData, triggers: unit.triggers, constants: unit.constants};
     });
     return unitsData;
+
    // console.log(units);
 }
 
@@ -143,6 +144,7 @@ module.exports = {
             if(template.triggers !== undefined)
                 for(trigger of template.triggers){
                     newUnit.triggers.push( {
+                        enabled:true,
                         name: trigger.name,
                         condition: trigger.condition,
                         status: trigger.status,
@@ -231,6 +233,7 @@ module.exports = {
     },
     updateUnit: async (req) =>{
         //обновить unit (name, triggers)
+       
        try
        {
             let updatedUnit = null;
@@ -266,7 +269,8 @@ module.exports = {
             return {msg:"unit updated",data:[updatedUnit]};
         }
         catch(err){
-            err['source'] = "updateUnit";
+            //console.log(obj. tObj);
+            err['source'] = "updateUnit";//+JSON.stringify(tObj);
             throw err;
         }
     },
